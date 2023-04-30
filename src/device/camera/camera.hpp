@@ -4,6 +4,7 @@
 #include <mutex>
 #include <thread>
 
+#include "om.hpp"
 #include "opencv2/core/mat.hpp"
 #include "opencv2/imgproc.hpp"
 #include "semaphore.hpp"
@@ -12,16 +13,27 @@
 
 class Camera {
  private:
-  component::Recorder recorder_ = component::Recorder("CameraThread");
+  component::Recorder cam_recorder_ = component::Recorder("CameraThread");
+  component::Recorder topic_recorder_ = component::Recorder("PublishThread");
   virtual void GrabPrepare() = 0;
   virtual void GrabLoop() = 0;
+  virtual void PublishLoop() = 0;
 
   void GrabThread() {
     SPDLOG_DEBUG("[GrabThread] Started.");
     GrabPrepare();
     while (grabing) {
       GrabLoop();
-      recorder_.Record();
+      cam_recorder_.Record();
+    }
+    SPDLOG_DEBUG("[GrabThread] Stoped.");
+  }
+
+  void PublishThread() {
+    SPDLOG_DEBUG("[PublishThread] Started.");
+    while (grabing) {
+      PublishLoop();
+      topic_recorder_.Record();
     }
     SPDLOG_DEBUG("[GrabThread] Stoped.");
   }
@@ -33,9 +45,12 @@ class Camera {
   component::Semaphore frame_signal_;
 
   bool grabing = false;
-  std::thread grab_thread_;
+  std::thread grab_thread_, topic_thread_;
   std::mutex frame_stack_mutex_;
   std::deque<cv::Mat> frame_stack_;
+  Message::Topic<cv::Mat> cam_topic_;
+
+  Camera() : cam_topic_("cam_topic_") {}
 
   /**
    * @brief 设置相机参数
@@ -59,6 +74,7 @@ class Camera {
     if (OpenPrepare(index)) {
       grabing = true;
       grab_thread_ = std::thread(&Camera::GrabThread, this);
+      topic_thread_ = std::thread(&Camera::PublishThread, this);
       return true;
     }
     return false;
