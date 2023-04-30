@@ -176,10 +176,16 @@
         "*.in": "txt",
         "compare": "cpp",
         "valarray": "cpp",
+<<<<<<< HEAD
         "*.ipp": "cpp",
         "hash_map": "cpp",
         "hash_set": "cpp",
         "span": "cpp"
+=======
+        "pthread.h": "c",
+        "*.ipp": "cpp",
+        "om_config.h": "c"
+>>>>>>> cdc886c... 添加libhv及websocket server
     },
     "githubPullRequests.ignoredPullRequestBranches": [
         "2023"
