@@ -1,7 +1,6 @@
 #include "armor_detector.hpp"
 
 #include <execution>
-
 #include "spdlog/spdlog.h"
 
 void ArmorDetector::InitDefaultParams(const std::string &params_path) {
@@ -212,10 +211,10 @@ void ArmorDetector::MatchLightBars() {
   duration_armors_.Calc("Find Armors");
 }
 
-ArmorDetector::ArmorDetector() { SPDLOG_TRACE("Constructed."); }
+ArmorDetector::ArmorDetector() :detector_topic_("detector_topic_"){ SPDLOG_TRACE("Constructed."); }
 
 ArmorDetector::ArmorDetector(const std::string &params_path,
-                             game::Team enemy_team) {
+                             game::Team enemy_team) :detector_topic_("detector_topic_"){
   LoadParams(params_path);
   SetEnemyTeam(enemy_team);
   SPDLOG_TRACE("Constructed.");
@@ -266,4 +265,13 @@ void ArmorDetector::VisualizeResult(const cv::Mat &output, int verbose) {
     std::for_each(std::execution::par_unseq, targets_.begin(), targets_.end(),
                   draw_armor);
   }
+}
+
+void ArmorDetector ::DetectorTopic(){
+  om_init();
+  DetectorPacked data;
+  data.frame=targets_.front();
+  data.frame_vertices=data.frame.ImageVertices();
+  data.physical_vertices=data.frame.PhysicVertices();
+  detector_topic_.Publish(data);
 }

@@ -5,6 +5,14 @@
 #include "detector.hpp"
 #include "light_bar.hpp"
 #include "timer.hpp"
+#include "om.hpp"
+
+typedef struct{
+  Armor frame;
+  std::vector<cv::Point2f> frame_vertices;
+  cv::Mat physical_vertices;
+}DetectorPacked;
+
 
 class ArmorDetector : public Detector<Armor, ArmorDetectorParam<double>> {
  private:
@@ -26,7 +34,8 @@ class ArmorDetector : public Detector<Armor, ArmorDetectorParam<double>> {
   ~ArmorDetector();
 
   void SetEnemyTeam(game::Team enemy_team);
-
+  Message::Topic<DetectorPacked> detector_topic_;
   const tbb::concurrent_vector<Armor> &Detect(const cv::Mat &frame);
   void VisualizeResult(const cv::Mat &output, int verbose = 1);
+  void DetectorTopic();
 };

@@ -99,7 +99,7 @@ void HikCamera::PublishLoop() {
   if (!frame_stack_.empty()) {
     std::lock_guard<std::mutex> lock(frame_stack_mutex_);
     cam_topic_.Publish(frame_stack_.front());
-    frame_signal_.Signal();
+    frame_signal_.Give();
   }
 }
 

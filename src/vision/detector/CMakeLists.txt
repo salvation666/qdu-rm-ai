@@ -25,11 +25,15 @@ if(BUILD_NN)
         module_param
         spdlog::spdlog
         tbb
+        OM
         ${Taim}_object
     )
-
+    target_link_directories(${Tradar}_${PROJECT_NAME} PUBLIC
+    ${CMAKE_BINARY_DIR}/om.out/om/src/
+    )
     target_include_directories(${Tradar}_${PROJECT_NAME} PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
+        $<TARGET_PROPERTY:OneMessage,INTERFACE_INCLUDE_DIRECTORIES>
     )
 
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
@@ -41,6 +45,8 @@ if(BUILD_NN)
     endif()
 endif()
 
+
+
 # ---------------------------------------------------------------------------------------
 # aim
 # ---------------------------------------------------------------------------------------
@@ -49,8 +55,11 @@ file(GLOB ${Taim}_${PROJECT_NAME}_SRC
     "${CMAKE_CURRENT_SOURCE_DIR}/async_armor_detector.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/snipe_detector.cpp"
 )
-
 add_library(${Taim}_${PROJECT_NAME} STATIC ${${Taim}_${PROJECT_NAME}_SRC})
+
+target_link_directories(${Taim}_${PROJECT_NAME} PUBLIC
+    ${CMAKE_BINARY_DIR}/om.out/om/src/
+)
 
 target_link_libraries(${Taim}_${PROJECT_NAME} PUBLIC
     ${OpenCV_LIBS}
@@ -58,13 +67,14 @@ target_link_libraries(${Taim}_${PROJECT_NAME} PUBLIC
     module_param
     spdlog::spdlog
     tbb
+    OM
     ${Taim}_object
 )
 
 target_include_directories(${Taim}_${PROJECT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
+    $<TARGET_PROPERTY:OneMessage,INTERFACE_INCLUDE_DIRECTORIES>
 )
-
 # ---------------------------------------------------------------------------------------
 # buff
 # ---------------------------------------------------------------------------------------
@@ -74,17 +84,24 @@ file(GLOB ${Tbuff}_${PROJECT_NAME}_SRC
 
 add_library(${Tbuff}_${PROJECT_NAME} STATIC ${${Tbuff}_${PROJECT_NAME}_SRC})
 
+
+target_link_directories(${Tbuff}_${PROJECT_NAME} PUBLIC
+    ${CMAKE_BINARY_DIR}/om.out/om/src/
+)
 target_link_libraries(${Tbuff}_${PROJECT_NAME} PUBLIC
     ${OpenCV_LIBS}
     module_component
     module_param
     spdlog::spdlog
     tbb
+    OM
     ${Tbuff}_object
 )
 
 target_include_directories(${Tbuff}_${PROJECT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
+    $<TARGET_PROPERTY:OneMessage,INTERFACE_INCLUDE_DIRECTORIES>
+
 )
 
 # ---------------------------------------------------------------------------------------
