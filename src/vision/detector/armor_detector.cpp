@@ -1,6 +1,7 @@
 #include "armor_detector.hpp"
 
 #include <execution>
+
 #include "spdlog/spdlog.h"
 
 void ArmorDetector::InitDefaultParams(const std::string &params_path) {
@@ -211,10 +212,13 @@ void ArmorDetector::MatchLightBars() {
   duration_armors_.Calc("Find Armors");
 }
 
-ArmorDetector::ArmorDetector() :detector_topic_("detector_topic_"){ SPDLOG_TRACE("Constructed."); }
+ArmorDetector::ArmorDetector() : detector_topic_("detector_topic_") {
+  SPDLOG_TRACE("Constructed.");
+}
 
 ArmorDetector::ArmorDetector(const std::string &params_path,
-                             game::Team enemy_team) :detector_topic_("detector_topic_"){
+                             game::Team enemy_team)
+    : detector_topic_("detector_topic_") {
   LoadParams(params_path);
   SetEnemyTeam(enemy_team);
   SPDLOG_TRACE("Constructed.");
@@ -267,11 +271,10 @@ void ArmorDetector::VisualizeResult(const cv::Mat &output, int verbose) {
   }
 }
 
-void ArmorDetector ::DetectorTopic(){
-  om_init();
-  DetectorPacked data;
-  data.frame=targets_.front();
-  data.frame_vertices=data.frame.ImageVertices();
-  data.physical_vertices=data.frame.PhysicVertices();
-  detector_topic_.Publish(data);
+void ArmorDetector ::DetectorTopic() {
+  DetectorPacked detector_data;
+  detector_data.frame = targets_.front();
+  detector_data.frame_vertices = detector_data.frame.ImageVertices();
+  detector_data.physical_vertices = detector_data.frame.PhysicVertices();
+  detector_topic_.Publish(detector_data);
 }

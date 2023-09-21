@@ -6,12 +6,8 @@
 #include "light_bar.hpp"
 #include "timer.hpp"
 #include "om.hpp"
+#include "topiclist.hpp"
 
-typedef struct{
-  Armor frame;
-  std::vector<cv::Point2f> frame_vertices;
-  cv::Mat physical_vertices;
-}DetectorPacked;
 
 
 class ArmorDetector : public Detector<Armor, ArmorDetectorParam<double>> {

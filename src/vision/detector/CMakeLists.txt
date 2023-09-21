@@ -25,15 +25,12 @@ if(BUILD_NN)
         module_param
         spdlog::spdlog
         tbb
-        OM
         ${Taim}_object
     )
     target_link_directories(${Tradar}_${PROJECT_NAME} PUBLIC
-    ${CMAKE_BINARY_DIR}/om.out/om/src/
     )
     target_include_directories(${Tradar}_${PROJECT_NAME} PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
-        $<TARGET_PROPERTY:OneMessage,INTERFACE_INCLUDE_DIRECTORIES>
     )
 
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
