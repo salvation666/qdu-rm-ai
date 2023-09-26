@@ -19,15 +19,15 @@ class Compensator {
   void VisualizePnp(Armor& armor, const cv::Mat& output, bool add_lable);
 
  public:
-  tbb::concurrent_vector<Armor> targets;
+  tbb::concurrent_vector<Armor> armors;
   Compensator();
   Compensator(const std::string& cam_mat_path,
               const game::Arm& arm = game::Arm::kINFANTRY);
   ~Compensator();
+  Message::Topic<tbb::concurrent_vector<Armor>> detector_topic;
   Message::Subscriber<tbb::concurrent_vector<Armor>> detector_subscribe;
   void SetArm(const game::Arm& arm);
   void LoadCameraMat(const std::string& path);
-  Message::Topic<tbb::concurrent_vector<Armor>> detector_topic;
 
   void PnpEstimate(Armor& armor);
   void Apply(tbb::concurrent_vector<Armor>& armors, const double ballet_speed,
@@ -35,6 +35,9 @@ class Compensator {
 
   void Apply(Armor& armor, const double ballet_speed,
              const component::Euler& euler, game::AimMethod method);
+
+  void ApplyTest(const double ballet_speed, const component::Euler& euler,
+                 game::AimMethod method);
 
   void VisualizeResult(tbb::concurrent_vector<Armor>& armors,
                        const cv::Mat& output, int verbose = 1);

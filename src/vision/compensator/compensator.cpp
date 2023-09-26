@@ -29,12 +29,15 @@ void Compensator::VisualizePnp(Armor& armor, const cv::Mat& output,
   }
 }
 
-Compensator::Compensator() : detector_topic("detector_topic") ,detector_subscribe("detector_topic",targets){
+Compensator::Compensator()
+    : detector_topic("detector_topic"),
+      detector_subscribe("detector_topic", armors) {
   SPDLOG_TRACE("Constructed.");
 }
 
 Compensator::Compensator(const std::string& cam_mat_path, const game::Arm& arm)
-    : detector_topic("detector_topic"),detector_subscribe("detector_topic",targets) {
+    : detector_topic("detector_topic"),
+      detector_subscribe("detector_topic", armors) {
   SPDLOG_TRACE("Constructed.");
   // TODO(RX.Jiang) : 和机械、兵种相关，后期放到namespace
   SetArm(arm);
@@ -180,6 +183,33 @@ void Compensator::Apply(tbb::concurrent_vector<Armor>& armors,
   CompensateGravity(armor, ballet_speed, method);
 }
 
+void Compensator::ApplyTest(const double ballet_speed,
+                            const component::Euler& euler,
+                            game::AimMethod method) {
+#if 0
+  cv::Point2f frame_center(kIMAGE_WIDTH / 2, kIMAGE_HEIGHT / 2);
+  std::sort(armors.begin(), armors.end(),
+            [frame_center](Armor& armor1, Armor& armor2) {
+              return cv::norm(armor1.ImageCenter() - frame_center) <
+                     cv::norm(armor2.ImageCenter() - frame_center);
+            });
+#endif
+  std::sort(armors.begin(), armors.end(), [](Armor& a, Armor& b) {
+    if (a.GetArea() > b.GetArea()) {
+      return false;
+    } else {
+      return abs(a.ImageCenter().x - kIMAGE_WIDTH / 2) <=
+             abs(b.ImageCenter().x - kIMAGE_WIDTH / 2);
+    }
+  });
+  auto& armor = armors.front();
+  if (armor.GetModel() == game::Model::kUNKNOWN) {
+    armor.SetModel(game::Model::kINFANTRY);
+    SPDLOG_ERROR("Hasn't set model.");
+  }
+  SolveAngles(armor, euler);
+  CompensateGravity(armor, ballet_speed, method);
+}
 void Compensator::Apply(Armor& armor, const double ballet_speed,
                         const component::Euler& euler, game::AimMethod method) {
   cv::Point2f frame_center(kIMAGE_WIDTH / 2, kIMAGE_HEIGHT / 2);
