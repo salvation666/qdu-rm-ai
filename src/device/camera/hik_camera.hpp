@@ -14,9 +14,12 @@ class HikCamera : public Camera {
   void *camera_handle_ = nullptr;
   MV_FRAME_OUT raw_frame_;
 
+  std::thread topic_thread_;
+  std::deque<cv::Mat> frame_queue_;
+  component::Semaphore frame_signal_;
+
   void GrabPrepare();
   void GrabLoop();
-  void PublishLoop();
   bool OpenPrepare(unsigned int index);
 
   /**

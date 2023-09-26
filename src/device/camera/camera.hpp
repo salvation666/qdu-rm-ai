@@ -14,10 +14,8 @@
 class Camera {
  private:
   component::Recorder cam_recorder_ = component::Recorder("CameraThread");
-  component::Recorder topic_recorder_ = component::Recorder("PublishThread");
   virtual void GrabPrepare() = 0;
   virtual void GrabLoop() = 0;
-  virtual void PublishLoop() = 0;
 
   void GrabThread() {
     SPDLOG_DEBUG("[GrabThread] Started.");
@@ -29,28 +27,19 @@ class Camera {
     SPDLOG_DEBUG("[GrabThread] Stoped.");
   }
 
-  void PublishThread() {
-    SPDLOG_DEBUG("[PublishThread] Started.");
-    while (grabing) {
-      PublishLoop();
-      topic_recorder_.Record();
-    }
-    SPDLOG_DEBUG("[GrabThread] Stoped.");
-  }
-
   virtual bool OpenPrepare(unsigned int index) = 0;
 
  public:
   unsigned int frame_h_, frame_w_;
-  component::Semaphore frame_signal_;
 
   bool grabing = false;
-  std::thread grab_thread_, topic_thread_;
-  std::mutex frame_stack_mutex_;
-  std::deque<cv::Mat> frame_stack_;
+  std::thread grab_thread_;
+  std::mutex frame_mutex_;
+  cv::Mat frame_;
+
   Message::Topic<cv::Mat> cam_topic_;
 
-  Camera() : cam_topic_("cam_topic_") {}
+  Camera() : cam_topic_("cam_tp") {}
 
   /**
    * @brief 设置相机参数
@@ -74,7 +63,6 @@ class Camera {
     if (OpenPrepare(index)) {
       grabing = true;
       grab_thread_ = std::thread(&Camera::GrabThread, this);
-      topic_thread_ = std::thread(&Camera::PublishThread, this);
       return true;
     }
     return false;
@@ -85,17 +73,21 @@ class Camera {
    *
    * @return cv::Mat 拍摄的图像
    */
+  // [[deprecated("Use Pub&Sub mode")]]
   virtual bool GetFrame(cv::Mat& frame) {
-    std::lock_guard<std::mutex> lock(frame_stack_mutex_);
-    if (!frame_stack_.empty()) {
-      frame_signal_.Take();
-      cv::resize(frame_stack_.front(), frame, cv::Size(frame_w_, frame_h_));
-      frame_stack_.clear();
-    } else {
-      // SPDLOG_ERROR("Empty frame stack!");
-      return false;
-    }
-    return true;
+    /*
+      std::lock_guard<std::mutex> lock(frame_mutex_);
+      if (!frame_stack_.empty()) {
+        frame_signal_.Take();
+        cv::resize(frame_stack_.front(), frame, cv::Size(frame_w_, frame_h_));
+        frame_stack_.clear();
+      } else {
+        // SPDLOG_ERROR("Empty frame stack!");
+        return false;
+      }
+      return true;
+    */
+    return false;
   }
 
   /**

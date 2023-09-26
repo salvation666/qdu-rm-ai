@@ -17,8 +17,7 @@ const unsigned int kSDK_VERSION = 50463230;
 /**
  * @brief 检查HikRobot相机错误
  *
- * @param err
- * @param description
+ * @param err));on
  * @param exit_flag
  *
  * @return true if err==MV_OK
@@ -82,25 +81,16 @@ void HikCamera::GrabLoop() {
       cv::Size(raw_frame_.stFrameInfo.nWidth, raw_frame_.stFrameInfo.nHeight),
       CV_8UC1, raw_frame_.pBufAddr);
 
-  if (!raw_mat.empty()) cv::cvtColor(raw_mat, raw_mat, cv::COLOR_BayerRG2BGR);
-
-  std::lock_guard<std::mutex> lock(frame_stack_mutex_);
-  frame_stack_.clear();
-  frame_stack_.push_front(raw_mat.clone());
-  frame_signal_.Give();
-  SPDLOG_DEBUG("frame_stack_ size: {}", frame_stack_.size());
   if (nullptr != raw_frame_.pBufAddr) {
     HikCheck(MV_CC_FreeImageBuffer(camera_handle_, &raw_frame_),
              "[GrabThread] FreeImageBuffer");
   }
-}
 
-void HikCamera::PublishLoop() {
-  if (!frame_stack_.empty()) {
-    std::lock_guard<std::mutex> lock(frame_stack_mutex_);
-    cam_topic_.Publish(frame_stack_.front());
-    frame_signal_.Give();
-  }
+  if (!raw_mat.empty()) cv::cvtColor(raw_mat, raw_mat, cv::COLOR_BayerRG2BGR);
+
+  std::lock_guard<std::mutex> lock(frame_mutex_);
+  frame_queue_.push_front(raw_mat.clone());
+  frame_signal_.Give();
 }
 
 bool HikCamera::OpenPrepare(unsigned int index) {
@@ -176,11 +166,23 @@ void HikCamera::Prepare() {
     }
   } else {
     SPDLOG_ERROR("Find No Devices!");
+    return;
   }
 
-  auto cam_callback = [](cv::Mat &frame) {
-    // TODO(ZX.Song) : to be continue...
-  };
+  topic_thread_ = std::thread(
+      [&]() {
+        SPDLOG_DEBUG("[PublishThread] Started.");
+        auto size = cv::Size(frame_w_, frame_h_);
+        while (grabing) {
+          if (!frame_queue_.empty()) {
+            frame_signal_.Take();
+            cv::resize(frame_queue_.front(), frame_, size);
+            frame_queue_.clear();
+            cam_topic_.Publish(frame_);
+          }
+        }
+        SPDLOG_DEBUG("[GrabThread] Stoped.");
+      });
 }
 
 /**

@@ -4,21 +4,10 @@ void RaspiCamera::GrabPrepare() { return; }
 
 void RaspiCamera::GrabLoop() {
   cv::Mat frame;
-  cam_ >> frame;
-  if (!frame.empty()) {
-    std::lock_guard<std::mutex> lock(frame_stack_mutex_);
-    frame_stack_.push_front(frame.clone());
-    frame_signal_.Give();
-    SPDLOG_DEBUG("frame_stack_ size: {}", frame_stack_.size());
-  } else {
-    SPDLOG_WARN("Empty frame");
-  }
-}
-
-void RaspiCamera::PublishLoop() {
-  if (!frame_stack_.empty()) {
-    cam_topic_.Publish(frame_stack_.front());
-  }
+  cam_ >> frame_;
+  if (frame_.cols != frame_w_)
+    cv::resize(frame_, frame_, cv::Size(frame_w_, frame_h_));
+  cam_topic_.Publish(frame_);
 }
 
 bool RaspiCamera::OpenPrepare(unsigned int index) {
