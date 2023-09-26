@@ -206,19 +206,20 @@ void ArmorDetector::MatchLightBars() {
       // armor.SetModel(game::Model::kINFANTRY);
       targets_.emplace_back(armor);
       break;
+      detector_topic.Publish(targets_);
     }
   }
 
   duration_armors_.Calc("Find Armors");
 }
 
-ArmorDetector::ArmorDetector() : detector_topic_("detector_topic_") {
+ArmorDetector::ArmorDetector() : detector_topic("detector_topic") {
   SPDLOG_TRACE("Constructed.");
 }
 
 ArmorDetector::ArmorDetector(const std::string &params_path,
                              game::Team enemy_team)
-    : detector_topic_("detector_topic_") {
+    : detector_topic("detector_topic") {
   LoadParams(params_path);
   SetEnemyTeam(enemy_team);
   SPDLOG_TRACE("Constructed.");
@@ -271,10 +272,4 @@ void ArmorDetector::VisualizeResult(const cv::Mat &output, int verbose) {
   }
 }
 
-void ArmorDetector ::DetectorTopic() {
-  DetectorPacked detector_data;
-  detector_data.frame = targets_.front();
-  detector_data.frame_vertices = detector_data.frame.ImageVertices();
-  detector_data.physical_vertices = detector_data.frame.PhysicVertices();
-  detector_topic_.Publish(detector_data);
-}
+

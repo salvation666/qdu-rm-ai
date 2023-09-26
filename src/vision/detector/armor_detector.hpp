@@ -28,10 +28,9 @@ class ArmorDetector : public Detector<Armor, ArmorDetectorParam<double>> {
   ArmorDetector();
   ArmorDetector(const std::string &params_path, game::Team enemy_team);
   ~ArmorDetector();
-
+  
   void SetEnemyTeam(game::Team enemy_team);
-  Message::Topic<DetectorPacked> detector_topic_;
+  Message::Topic<tbb::concurrent_vector<Armor>> detector_topic;
   const tbb::concurrent_vector<Armor> &Detect(const cv::Mat &frame);
   void VisualizeResult(const cv::Mat &output, int verbose = 1);
-  void DetectorTopic();
 };

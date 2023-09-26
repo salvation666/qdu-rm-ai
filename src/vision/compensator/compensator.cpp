@@ -29,10 +29,12 @@ void Compensator::VisualizePnp(Armor& armor, const cv::Mat& output,
   }
 }
 
-Compensator::Compensator() { SPDLOG_TRACE("Constructed."); }
+Compensator::Compensator() : detector_topic("detector_topic") ,detector_subscribe("detector_topic",targets){
+  SPDLOG_TRACE("Constructed.");
+}
 
-Compensator::Compensator(const std::string& cam_mat_path,
-                         const game::Arm& arm) {
+Compensator::Compensator(const std::string& cam_mat_path, const game::Arm& arm)
+    : detector_topic("detector_topic"),detector_subscribe("detector_topic",targets) {
   SPDLOG_TRACE("Constructed.");
   // TODO(RX.Jiang) : 和机械、兵种相关，后期放到namespace
   SetArm(arm);
