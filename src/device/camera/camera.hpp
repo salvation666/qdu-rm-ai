@@ -39,7 +39,7 @@ class Camera {
 
   Message::Topic<cv::Mat> cam_topic_;
 
-  Camera() : cam_topic_("cam_tp") {}
+  Camera() : cam_topic_("cam_topic") {}
 
   /**
    * @brief 设置相机参数

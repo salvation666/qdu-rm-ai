@@ -141,7 +141,22 @@ bool HikCamera::OpenPrepare(unsigned int index) {
   HikCheck(MV_CC_StartGrabbing(camera_handle_), "StartGrabbing");
   return true;
 }
-
+void HikCamera::ThreadCallBack() {
+  SPDLOG_DEBUG("[PublishThread] Started.");
+  auto size = cv::Size(frame_w_, frame_h_);
+  while (grabing) {
+    if (!frame_queue_.empty()) {
+      frame_signal_.Take();
+      cv::resize(frame_queue_.front(), frame_, size);
+      frame_queue_.clear();
+      cam_topic_.Publish(frame_);
+    }
+  }
+  SPDLOG_DEBUG("[GrabThread] Stopped.");
+}
+void HikCamera::ThreadCallBackInfo(void *mythreadinfo) {
+  static_cast<HikCamera *>(mythreadinfo)->ThreadCallBack();
+}
 /**
  * @brief 相机初始化前的准备工作
  *
@@ -169,20 +184,7 @@ void HikCamera::Prepare() {
     return;
   }
 
-  topic_thread_ = std::thread(
-      [&]() {
-        SPDLOG_DEBUG("[PublishThread] Started.");
-        auto size = cv::Size(frame_w_, frame_h_);
-        while (grabing) {
-          if (!frame_queue_.empty()) {
-            frame_signal_.Take();
-            cv::resize(frame_queue_.front(), frame_, size);
-            frame_queue_.clear();
-            cam_topic_.Publish(frame_);
-          }
-        }
-        SPDLOG_DEBUG("[GrabThread] Stoped.");
-      });
+  std::thread topic_thread_(HikCamera::ThreadCallBackInfo, (void *)this);
 }
 
 /**
