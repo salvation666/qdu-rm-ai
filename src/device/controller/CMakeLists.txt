@@ -13,17 +13,22 @@ file(GLOB ${PROJECT_NAME}_SRC
 
 add_library(${PROJECT_NAME} STATIC ${${PROJECT_NAME}_SRC})
 
+target_link_directories(${PROJECT_NAME} PUBLIC
+    ${CMAKE_BINARY_DIR}/om.out/om/src/
+)
 target_link_libraries(${PROJECT_NAME}
     ${OpenCV_LIBS}
     module_component
     spdlog::spdlog
     Threads::Threads
     usbp-1
+    OM
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${SUBMODULE_PATH}/qdu-rm-protocol/
+    $<TARGET_PROPERTY:OneMessage,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 add_dependencies(${PROJECT_NAME} module_component)

@@ -71,9 +71,9 @@ void Robot::ThreadTrans() {
   SPDLOG_DEBUG("[ThreadTrans] Stoped.");
 }
 
-Robot::Robot() { SPDLOG_TRACE("Constructed."); }
+Robot::Robot() : robot_topic("robot_topic"){ SPDLOG_TRACE("Constructed."); }
 
-Robot::Robot(const std::string &dev_path) {
+Robot::Robot(const std::string &dev_path): robot_topic("robot_topic"){
   Init(dev_path);
 
   SPDLOG_TRACE("Constructed.");
@@ -218,6 +218,7 @@ void Robot::Pack(Protocol_DownData_t &data, double distance) {
   }
 
   mutex_command_.lock();
+  robot_topic.Publish(data);
   commandq_.emplace_back(data);
   pack_signal_.Give();
   mutex_command_.unlock();

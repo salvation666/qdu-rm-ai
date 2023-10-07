@@ -1,6 +1,7 @@
 #pragma once
 
 #include <mutex>
+#include <om.hpp>
 #include <stack>
 #include <thread>
 
@@ -50,6 +51,7 @@ class Robot {
   float GetBalletSpeed();
   float GetChassicSpeed();
   bool GetNotice();
+  Message::Topic<Protocol_DownData_t> robot_topic;
 
   void Pack(Protocol_DownData_t &data, const double distance);
 };
